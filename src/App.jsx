@@ -88,7 +88,7 @@ export default function App() {
             return { id, ...data, area, setup, cost };
         });
     }, [placements, customerType, quantity]);
-    //test
+
     const addOnTotals = calculatedPlacements.reduce((sum, p) => sum + p.cost, 0);
     const totalSetup = calculatedPlacements.reduce((sum, p) => sum + p.setup, 0);
     const pricePerItem = basePrice + addOnTotals;
