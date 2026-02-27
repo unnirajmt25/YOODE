@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Settings, Download, Search, Layers, Scissors, Check, X, Shield, Users, Building, Zap, ShoppingCart } from 'lucide-react';
 import './index.css';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import YoodeLogo from './assets/logo.svg';
 
 const PLACEMENTS = [
     { id: 'front', label: 'Front' },
@@ -12,6 +13,30 @@ const PLACEMENTS = [
 ];
 
 const ADD_ONS = ['DTG', 'DTF', 'Screen Print', 'Embroidery (Standard)', 'Embroidery (Coloreel)'];
+
+const PRODUCT_CATALOG = [
+    { name: 'Men Amid Crew Neck', style: 'Basic T-Shirt' },
+    { name: 'Men SoftTouch Crew Neck', style: 'Basic T-Shirt' },
+    { name: 'Men SoftTouch Oversized', style: 'Basic T-Shirt' },
+    { name: 'Men Performance Polo', style: 'Classic Polo' },
+    { name: 'Men Plain Polo', style: 'Classic Polo' },
+    { name: 'Men Flexi Polo', style: 'Classic Polo' },
+    { name: 'Men Brisk Polo', style: 'Classic Polo' },
+    { name: 'Men SoftTouch Polo', style: 'Interlock Polo' },
+    { name: 'Men Printed Collar SoftTouch Polo', style: 'Interlock Polo' },
+    { name: 'Men Cozy Hoodie', style: 'Pullover Hoodie' },
+    { name: 'Men Cozy Zipper Hoodie', style: 'Zip-Up Hoodie' },
+    { name: 'Men Cozy Sweatshirt', style: 'Classic Sweatshirt' },
+    { name: 'Men Cozy Varsity Jacket', style: 'Classic Sweatshirt' },
+    { name: 'Men Cozy Joggers', style: 'Joggers' },
+    { name: 'Men Cozy Shorts', style: 'Shorts' },
+    { name: 'Women Amid Crew Neck', style: 'Basic T-Shirt' },
+    { name: 'Women SoftTouch Crew Neck', style: 'Basic T-Shirt' },
+    { name: 'Women SoftTouch Oversized', style: 'Basic T-Shirt' },
+    { name: 'Women Amid Crop Top', style: 'Basic T-Shirt' }
+];
+
+const UNIQUE_STYLES = Array.from(new Set(PRODUCT_CATALOG.map(p => p.style)));
 
 const SIZES = [
     { id: '36', label: '36 - XS' },
@@ -48,6 +73,15 @@ export default function App() {
         PLACEMENTS.reduce((acc, p) => ({ ...acc, [p.id]: { active: false, type: 'DTG', width: 4, height: 4, colours: 1, stitches: 16000 } }), {})
     );
     const [cart, setCart] = useState([]);
+
+    const handleProductChange = (e) => {
+        const val = e.target.value;
+        setProduct(val);
+        const matchedObj = PRODUCT_CATALOG.find(p => p.name === val);
+        if (matchedObj) {
+            setStyle(matchedObj.style);
+        }
+    };
 
     const handlePlacementChange = (id, field, value) => {
         setPlacements(prev => ({
@@ -113,6 +147,10 @@ export default function App() {
         setPlacements(PLACEMENTS.reduce((acc, p) => ({ ...acc, [p.id]: { active: false, type: 'DTG', width: 4, height: 4, colours: 1, stitches: 16000 } }), {}));
     };
 
+    const handleRemoveFromCart = (idToRemove) => {
+        setCart(cart.filter(item => item.id !== idToRemove));
+    };
+
     const handleDownloadQuote = () => {
         const doc = new jsPDF();
         doc.setFontSize(22);
@@ -138,7 +176,7 @@ export default function App() {
             ];
         });
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: 45,
             head: [['#', 'Product', 'Size', 'Qty', 'Decorations', 'Total']],
             body: tableData,
@@ -157,7 +195,7 @@ export default function App() {
         e.preventDefault();
         setLoginError('');
 
-        if (loginUser === 'unnirajmt@gmail.com' && loginPass === '123') {
+        if ((loginUser === 'unnirajmt@gmail.com' || loginUser === 'smithy@gmail.com') && loginPass === '123') {
             setIsLoggedIn(true);
         } else {
             setLoginError('Invalid username or password');
@@ -169,9 +207,8 @@ export default function App() {
             <div className="app-container" style={{ justifyContent: 'center', alignItems: 'center' }}>
                 <div className="panel" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem' }}>
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                        <div className="logo" style={{ justifyContent: 'center', marginBottom: '1rem', fontSize: '1.75rem' }}>
-                            <Layers className="text-accent" />
-                            <span>YOODE</span>
+                        <div className="logo" style={{ justifyContent: 'center', marginBottom: '1rem' }}>
+                            <img src={YoodeLogo} alt="YOODE Logo" style={{ height: '1.75rem' }} />
                         </div>
                         <h2 className="panel-title" style={{ marginBottom: '0.5rem' }}>Partner Portal</h2>
                         <p className="panel-subtitle">Sign in to access the pricing calculator.</p>
@@ -219,12 +256,11 @@ export default function App() {
         <div className="app-container">
             <header className="app-header">
                 <div className="logo">
-                    <Layers className="text-accent" />
-                    <span>YOODE</span>
+                    <img src={YoodeLogo} alt="YOODE Logo" style={{ height: '1.5rem' }} />
                 </div>
                 <nav>
                     <button className="nav-btn active">Calculator</button>
-                    <button className="nav-btn">Catalog</button>
+                    <button className="nav-btn" onClick={() => window.open('https://yoode.com/pages/shop', '_blank')}>Catalog</button>
                     <button className="nav-btn" onClick={() => { setIsLoggedIn(false); setLoginPass(''); setLoginUser(''); }}>Logout</button>
                 </nav>
             </header>
@@ -244,7 +280,7 @@ export default function App() {
                                 {['Retail', 'Corporate', 'Reseller'].map(type => (
                                     <button
                                         key={type}
-                                        className={`type-btn ${customerType === type ? 'active' : ''}`}
+                                        className={`type-btn ${customerType === type ? 'active ' + type.toLowerCase() : ''}`}
                                         onClick={() => setCustomerType(type)}
                                     >
                                         {type}
@@ -256,21 +292,27 @@ export default function App() {
                         <div className="grid-2">
                             <div className="input-group">
                                 <label>Product</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={product}
-                                    onChange={(e) => setProduct(e.target.value)}
-                                    className="glass-input"
-                                />
+                                    onChange={handleProductChange}
+                                    className="glass-select"
+                                >
+                                    {PRODUCT_CATALOG.map(p => (
+                                        <option key={p.name} value={p.name}>{p.name}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="input-group">
                                 <label>Style</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={style}
                                     onChange={(e) => setStyle(e.target.value)}
-                                    className="glass-input"
-                                />
+                                    className="glass-select"
+                                >
+                                    {UNIQUE_STYLES.map(s => (
+                                        <option key={s} value={s}>{s}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
@@ -482,11 +524,20 @@ export default function App() {
                                 </div>
                                 {cart.map((item, i) => (
                                     <div key={item.id} className="summary-row space-between mt-2" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.75rem', marginBottom: '0.75rem', alignItems: 'flex-start' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                                             <span style={{ fontSize: '1rem', color: 'var(--text-main)', fontWeight: '700' }}>{item.quantity}x {item.product}</span>
                                             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{item.size} • {item.placements.length} Prints</span>
                                         </div>
-                                        <span className="text-highlight">₹{item.grandTotal.toFixed(2)}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <span className="text-highlight">₹{item.grandTotal.toFixed(2)}</span>
+                                            <button
+                                                onClick={() => handleRemoveFromCart(item.id)}
+                                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                title="Remove from cart"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
 
